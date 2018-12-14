@@ -1,7 +1,8 @@
 {
   "dev": {
     "database": {
-      "address": "mongodb://localhost:27017/datax_dev:27017"
+      "address": "mongodb://localhost:27017",
+      "db_name": "datax_dev"
     },
     "api": {
       "port": 9000
@@ -9,7 +10,8 @@
   },
   "test": {
     "database": {
-      "address": "mongodb://localhost:27017/datax_test:27017"
+      "address": "mongodb://localhost:27017",
+      "db_name": "datax_test"
     },
     "api": {
       "port": 9001
@@ -17,7 +19,8 @@
   },
   "prod": {
     "database": {
-      "address": "mongodb://localhost:27017/datax_prod:27017"
+      "address": "mongodb://localhost:27017",
+      "db_name": "datax_prod"
     },
     "api": {
       "port": 9002

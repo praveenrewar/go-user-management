@@ -5,6 +5,7 @@ import (
 
 	"../../logger"
 
+	"../../middlewares/usersmiddlewares"
 	"github.com/gorilla/mux"
 )
 
@@ -16,6 +17,7 @@ type Route struct {
 	Method      string
 	Pattern     string
 	HandlerFunc http.HandlerFunc
+	Validator   usersmiddlewares.signupValidator
 }
 
 //Routes defines the list of routes of our API
@@ -23,10 +25,10 @@ type Routes []Route
 
 var routes = Routes{
 	Route{
-		"GetUsers",
-		"GET",
-		"/users",
-		controller.GetUsers,
+		Name:        "GetUsers",
+		Method:      "GET",
+		Pattern:     "/users",
+		HandlerFunc: controller.GetUsers,
 	},
 	Route{
 		"Signup",
@@ -50,11 +52,14 @@ var routes = Routes{
 //NewRouter configures a new router to the API
 func NewRouter() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
+
+	//signup
+	router.Methods()
+
 	for _, route := range routes {
 		var handler http.Handler
 		handler = route.HandlerFunc
 		handler = logger.Logger(handler, route.Name)
-
 		router.
 			Methods(route.Method).
 			Path(route.Pattern).

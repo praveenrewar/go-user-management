@@ -30,10 +30,20 @@ func (c *Controller) GetUsers(w http.ResponseWriter, r *http.Request) {
 // Signup POST /
 func (c *Controller) Signup(w http.ResponseWriter, r *http.Request) {
 	var user User
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576)) // read the body of the request
+	type Message struct {
+		UserID  string `json:"user_id,omitempty"`
+		Status  int32  `json:"status"`
+		Message string `json:"message,omitempty"`
+	}
+	body, err := ioutil.ReadAll(r.Body) // read the body of the request
 	if err != nil {
 		log.Fatalln("Error in signing up", err)
 		w.WriteHeader(http.StatusInternalServerError)
+		message := &Message{
+			Status:  500,
+			Message: "Error in signing up"}
+		userJSON, _ := json.Marshal(message)
+		w.Write(userJSON)
 		return
 	}
 	if err := r.Body.Close(); err != nil {
@@ -44,17 +54,33 @@ func (c *Controller) Signup(w http.ResponseWriter, r *http.Request) {
 		if err := json.NewEncoder(w).Encode(err); err != nil {
 			log.Fatalln("Error Signup unmarshalling data", err)
 			w.WriteHeader(http.StatusInternalServerError)
+			message := &Message{
+				Status:  500,
+				Message: "Error Signup unmarshalling data"}
+			userJSON, _ := json.Marshal(message)
+			w.Write(userJSON)
 			return
 		}
 	}
 	success := c.Repository.AddUser(user) // adds the user to the DB
 	if !success {
 		w.WriteHeader(http.StatusInternalServerError)
+		message := &Message{
+			Status:  500,
+			Message: "Internal Server Error"}
+		userJSON, _ := json.Marshal(message)
+		w.Write(userJSON)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
+	message := &Message{
+		Status:  200,
+		UserID:  user.UserID,
+		Message: "Signup successfull"}
+	userJSON, _ := json.Marshal(message)
+	w.Write(userJSON)
 	return
 }
 
@@ -109,6 +135,5 @@ func (c *Controller) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.WriteHeader(http.StatusOK)
-
 	return
 }
