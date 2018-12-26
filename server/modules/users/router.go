@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"../../logger"
-
-	"../../middlewares/usersmiddlewares"
+	"../../middlewares/jwtAuthenticate"
+	"../../middlewares/usersMiddleware"
 	"github.com/gorilla/mux"
 )
 
@@ -17,7 +17,6 @@ type Route struct {
 	Method      string
 	Pattern     string
 	HandlerFunc http.HandlerFunc
-	Validator   usersmiddlewares.signupValidator
 }
 
 //Routes defines the list of routes of our API
@@ -27,26 +26,32 @@ var routes = Routes{
 	Route{
 		Name:        "GetUsers",
 		Method:      "GET",
-		Pattern:     "/users",
+		Pattern:     "/get_users",
 		HandlerFunc: controller.GetUsers,
 	},
 	Route{
-		"Signup",
-		"POST",
-		"/signup",
-		controller.Signup,
+		Name:        "Login",
+		Method:      "POST",
+		Pattern:     "/login",
+		HandlerFunc: controller.Login,
 	},
 	Route{
-		"UpdateProfile",
-		"PUT",
-		"/update_profile",
-		controller.UpdateProfile,
+		Name:        "Signup",
+		Method:      "POST",
+		Pattern:     "/signup",
+		HandlerFunc: controller.Signup,
 	},
 	Route{
-		"DeleteUser",
-		"DELETE",
-		"/deleteuser/{id}",
-		controller.DeleteUser,
+		Name:        "UpdatePassword",
+		Method:      "POST",
+		Pattern:     "/update_password",
+		HandlerFunc: controller.UpdatePassword,
+	},
+	Route{
+		Name:        "DeleteUser",
+		Method:      "DELETE",
+		Pattern:     "/deleteuser/{user_id}",
+		HandlerFunc: controller.DeleteUser,
 	}}
 
 //NewRouter configures a new router to the API
@@ -58,7 +63,24 @@ func NewRouter() *mux.Router {
 
 	for _, route := range routes {
 		var handler http.Handler
+		// var validator http.Handler
 		handler = route.HandlerFunc
+		if route.Name == "Signup" {
+			handler = usersmiddleware.SignupValidator(handler)
+		}
+		if route.Name == "Login" {
+			handler = usersmiddleware.LoginValidator(handler)
+		}
+		if route.Name == "UpdatePassword" {
+			handler = usersmiddleware.UpdatePasswordValidator(handler)
+			handler = jwtauthenticate.Authenticate(handler)
+		}
+		if route.Name == "GetUsers" {
+			handler = jwtauthenticate.Authenticate(handler)
+		}
+		if route.Name == "DeleteUser" {
+			handler = jwtauthenticate.Authenticate(handler)
+		}
 		handler = logger.Logger(handler, route.Name)
 		router.
 			Methods(route.Method).

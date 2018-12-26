@@ -5,21 +5,41 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/handlers"
-
 	"./server/modules/users"
 	"./server/sharedVariables"
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 )
 
-func main() {
+//App is used to start the app
+type App struct {
+	Router    *mux.Router
+	DBAddress interface{}
+	DBName    interface{}
+	Port      interface{}
+}
 
-	var port = shared.Port
-	router := users.NewRouter() // create routes
+func main() {
+	var a App
+	a.Run()
+	a.Serve()
+}
+
+//Run is used to create routers
+func (a *App) Run() {
+	a.Router = users.NewRouter() // create routes
+	a.DBAddress = shared.Address
+	a.DBName = shared.DbName
+	a.Port = shared.Port
+}
+
+//Serve is used to serve the routers created
+func (a *App) Serve() {
+	// launch server with CORS validations
 	// these two lines are important in order to allow access from the front-end side to the methods
 	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT"})
-
-	// launch server with CORS validations
-	log.Fatal(http.ListenAndServe(":"+string(port.(json.Number)),
-		handlers.CORS(allowedOrigins, allowedMethods)(router)))
+	log.Fatal(http.ListenAndServe(":"+string(a.Port.(json.Number)),
+		handlers.CORS(allowedOrigins, allowedMethods)(a.Router)))
+	log.Println("Here")
 }
