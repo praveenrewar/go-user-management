@@ -1,9 +1,7 @@
 package users
 
 import (
-	"fmt"
 	"log"
-	"time"
 
 	"../../sharedVariables"
 	"golang.org/x/crypto/bcrypt"
@@ -22,36 +20,34 @@ var DBNAME = shared.DbName.(string)
 // DOCNAME the name of the document
 const DOCNAME = "users"
 
-//MongoStore is used to define a mongo session
-type MongoStore struct {
-	session *mgo.Session
-}
+var mgoSession *mgo.Session
 
-var mongoStore = MongoStore{}
-
-func initialiseMongo() (session *mgo.Session) {
-
-	info := &mgo.DialInfo{
-		Addrs:    []string{address},
-		Timeout:  60 * time.Second,
-		Database: DBNAME,
+//GetMongoSession is used to create or use previously created mongo sessions
+func GetMongoSession() (*mgo.Session, Message) {
+	if mgoSession == nil {
+		var err error
+		mgoSession, err = mgo.Dial(address)
+		if err != nil {
+			log.Fatal(err)
+			returnMessage := Message{
+				Status:  500,
+				Message: "Failed to establish connection to mongo server ",
+			}
+			return nil, returnMessage
+		}
 	}
-
-	session, err := mgo.DialWithInfo(info)
-	if err != nil {
-		panic(err)
+	returnMessage := Message{
+		Status: 200,
 	}
-
-	return
-
+	return mgoSession.Copy(), returnMessage
 }
 
 // Login returns the list of Users
 func (r Repository) Login(user User) Message {
 	var userCheck User
-	session, err := mgo.Dial(address)
-	if err != nil {
-		fmt.Println("Failed to establish connection to Mongo server:", err)
+	session, err := GetMongoSession()
+	if err.Status != 200 {
+		return err
 	}
 	defer session.Close()
 	collection := session.DB(DBNAME).C(DOCNAME)
@@ -88,22 +84,17 @@ func (r Repository) Login(user User) Message {
 
 // Signup inserts a user in the DB
 func (r Repository) Signup(user User) Message {
-	var userCheck User
-	session, err := mgo.Dial(address)
-	if err != nil {
-		log.Fatal(err)
-		returnMessage := Message{
-			Status:  500,
-			Message: "Failed to establish connection to mongo server ",
-		}
-		return returnMessage
+	session, dbMessage := GetMongoSession()
+	if dbMessage.Status != 200 {
+		return dbMessage
 	}
 	defer session.Close()
 	collection := session.DB(DBNAME).C(DOCNAME)
+	var userCheck User
 	findQuery := collection.Find(bson.M{"userid": user.UserID}).One(&userCheck)
 	if findQuery != nil {
 		if findQuery.Error() == "not found" {
-			session.DB(DBNAME).C(DOCNAME).Insert(user)
+			err := session.DB(DBNAME).C(DOCNAME).Insert(user)
 			if err != nil {
 				log.Fatal(err)
 				returnMessage := Message{
@@ -142,14 +133,9 @@ func (r Repository) Signup(user User) Message {
 
 // UpdateUser updates an User in the DB
 func (r Repository) UpdateUser(user UpdateUser) Message {
-	session, err := mgo.Dial(address)
-	if err != nil {
-		log.Fatal(err)
-		returnMessage := Message{
-			Status:  500,
-			Message: "Failed to establish connection to mongo server ",
-		}
-		return returnMessage
+	session, dbMessage := GetMongoSession()
+	if dbMessage.Status != 200 {
+		return dbMessage
 	}
 	defer session.Close()
 	collection := session.DB(DBNAME).C(DOCNAME)
@@ -211,14 +197,9 @@ func (r Repository) UpdateUser(user UpdateUser) Message {
 
 //GetUsers is used to get all the users from the db
 func (r Repository) GetUsers() Message {
-	session, err := mgo.Dial(address)
-	if err != nil {
-		log.Fatal(err)
-		returnMessage := Message{
-			Status:  500,
-			Message: "Failed to establish connection to mongo server ",
-		}
-		return returnMessage
+	session, dbMessage := GetMongoSession()
+	if dbMessage.Status != 200 {
+		return dbMessage
 	}
 	defer session.Close()
 	collection := session.DB(DBNAME).C(DOCNAME)
@@ -255,17 +236,13 @@ func (r Repository) GetUsers() Message {
 
 // DeleteUser deletes an User (not used for now)
 func (r Repository) DeleteUser(userID string) Message {
-	session, err := mgo.Dial(address)
-	if err != nil {
-		returnMessage := Message{
-			Status:  500,
-			Message: "Failed to establish connection to mongo server ",
-		}
-		return returnMessage
+	session, dbMessage := GetMongoSession()
+	if dbMessage.Status != 200 {
+		return dbMessage
 	}
 	defer session.Close()
 	collection := session.DB(DBNAME).C(DOCNAME)
-	if err = collection.Remove(bson.M{"userid": userID}); err != nil {
+	if err := collection.Remove(bson.M{"userid": userID}); err != nil {
 		if err.Error() == "not found" {
 			returnMessage := Message{
 				Status:  404,
@@ -290,20 +267,16 @@ func (r Repository) DeleteUser(userID string) Message {
 
 //IsAdmin checks if user is admin or not
 func (r Repository) IsAdmin(userID string) Message {
-	session, err := mgo.Dial(address)
-	if err != nil {
-		returnMessage := Message{
-			Status:  500,
-			Message: "Failed to establish connection to mongo server ",
-		}
-		return returnMessage
+	session, dbMessage := GetMongoSession()
+	if dbMessage.Status != 200 {
+		return dbMessage
 	}
 	defer session.Close()
 	collection := session.DB(DBNAME).C(DOCNAME)
 	var result struct {
 		Role string `bson:"role"`
 	}
-	if err = collection.Find(bson.M{"userid": userID}).Select(bson.M{"role": 1}).One(&result); err != nil {
+	if err := collection.Find(bson.M{"userid": userID}).Select(bson.M{"role": 1}).One(&result); err != nil {
 		if err.Error() == "not found" {
 			returnMessage := Message{
 				Status:  401,
