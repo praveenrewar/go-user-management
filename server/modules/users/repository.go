@@ -22,11 +22,21 @@ const DOCNAME = "users"
 
 var mgoSession *mgo.Session
 
-//GetMongoSession is used to create or use previously created mongo sessions
-func GetMongoSession() (*mgo.Session, Message) {
+//DataAccessLayer defines methods we need from the database
+type DataAccessLayer interface {
+}
+
+// MongoSession is an implementation of DataAccessLayer for MongoDB
+type MongoSession struct {
+	session *mgo.Session
+	dbName  string
+}
+
+//NewMongoSession is used to create or use previously created mongo sessions
+func NewMongoSession(dbURI string, dbName string) (DataAccessLayer, Message) {
 	if mgoSession == nil {
 		var err error
-		mgoSession, err = mgo.Dial(address)
+		mgoSession, err = mgo.Dial(dbURI)
 		if err != nil {
 			log.Fatal(err)
 			returnMessage := Message{
@@ -39,7 +49,11 @@ func GetMongoSession() (*mgo.Session, Message) {
 	returnMessage := Message{
 		Status: 200,
 	}
-	return mgoSession.Copy(), returnMessage
+	mongo := &MongoSession{
+		session: mgoSession.Copy(),
+		dbName:  dbName,
+	}
+	return mongo, returnMessage
 }
 
 // Login returns the list of Users
