@@ -41,5 +41,4 @@ func (a *App) Serve() {
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT"})
 	log.Fatal(http.ListenAndServe(":"+string(a.Port.(json.Number)),
 		handlers.CORS(allowedOrigins, allowedMethods)(a.Router)))
-	log.Println("Here")
 }

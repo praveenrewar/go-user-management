@@ -5,8 +5,6 @@ import (
 
 	"../../sharedVariables"
 	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
 var address = shared.Address.(string)
@@ -20,52 +18,15 @@ var DBNAME = shared.DbName.(string)
 // DOCNAME the name of the document
 const DOCNAME = "users"
 
-var mgoSession *mgo.Session
-
-//DataAccessLayer defines methods we need from the database
-type DataAccessLayer interface {
-}
-
-// MongoSession is an implementation of DataAccessLayer for MongoDB
-type MongoSession struct {
-	session *mgo.Session
-	dbName  string
-}
-
-//NewMongoSession is used to create or use previously created mongo sessions
-func NewMongoSession(dbURI string, dbName string) (DataAccessLayer, Message) {
-	if mgoSession == nil {
-		var err error
-		mgoSession, err = mgo.Dial(dbURI)
-		if err != nil {
-			log.Fatal(err)
-			returnMessage := Message{
-				Status:  500,
-				Message: "Failed to establish connection to mongo server ",
-			}
-			return nil, returnMessage
-		}
-	}
-	returnMessage := Message{
-		Status: 200,
-	}
-	mongo := &MongoSession{
-		session: mgoSession.Copy(),
-		dbName:  dbName,
-	}
-	return mongo, returnMessage
-}
-
 // Login returns the list of Users
 func (r Repository) Login(user User) Message {
 	var userCheck User
-	session, err := GetMongoSession()
-	if err.Status != 200 {
-		return err
+	session, dbMessage := NewMongoSession(address, DBNAME)
+	if dbMessage.Status != 200 {
+		return dbMessage
 	}
-	defer session.Close()
-	collection := session.DB(DBNAME).C(DOCNAME)
-	findErr := collection.Find(bson.M{"userid": user.UserID}).One(&userCheck)
+	defer session.CloseSession()
+	findErr := session.FindUser(DOCNAME, user.UserID, &userCheck)
 	if findErr != nil {
 		if findErr.Error() == "not found" {
 			returnMessage := Message{
@@ -98,17 +59,16 @@ func (r Repository) Login(user User) Message {
 
 // Signup inserts a user in the DB
 func (r Repository) Signup(user User) Message {
-	session, dbMessage := GetMongoSession()
+	session, dbMessage := NewMongoSession(address, DBNAME)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
-	defer session.Close()
-	collection := session.DB(DBNAME).C(DOCNAME)
+	defer session.CloseSession()
 	var userCheck User
-	findQuery := collection.Find(bson.M{"userid": user.UserID}).One(&userCheck)
+	findQuery := session.FindUser(DOCNAME, user.UserID, &userCheck)
 	if findQuery != nil {
 		if findQuery.Error() == "not found" {
-			err := session.DB(DBNAME).C(DOCNAME).Insert(user)
+			err := session.InsertUser(DOCNAME, user)
 			if err != nil {
 				log.Fatal(err)
 				returnMessage := Message{
@@ -147,15 +107,14 @@ func (r Repository) Signup(user User) Message {
 
 // UpdateUser updates an User in the DB
 func (r Repository) UpdateUser(user UpdateUser) Message {
-	session, dbMessage := GetMongoSession()
+	session, dbMessage := NewMongoSession(address, DBNAME)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
-	defer session.Close()
-	collection := session.DB(DBNAME).C(DOCNAME)
+	defer session.CloseSession()
 	var userCheck User
 	var updatedUser User
-	findQuery := collection.Find(bson.M{"userid": user.UserID}).One(&userCheck)
+	findQuery := session.FindUser(DOCNAME, user.UserID, &userCheck)
 	if findQuery != nil {
 		if findQuery.Error() == "not found" {
 			returnMessage := Message{
@@ -188,7 +147,7 @@ func (r Repository) UpdateUser(user UpdateUser) Message {
 		user.Password = string(hash)
 		updatedUser.UserID = user.UserID
 		updatedUser.Password = user.Password
-		updateError := collection.Update(bson.M{"userid": user.UserID}, updatedUser)
+		updateError := session.UpdateUser(DOCNAME, user.UserID, updatedUser)
 		if updateError != nil {
 			returnMessage := Message{
 				Status:  500,
@@ -211,14 +170,13 @@ func (r Repository) UpdateUser(user UpdateUser) Message {
 
 //GetUsers is used to get all the users from the db
 func (r Repository) GetUsers() Message {
-	session, dbMessage := GetMongoSession()
+	session, dbMessage := NewMongoSession(address, DBNAME)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
-	defer session.Close()
-	collection := session.DB(DBNAME).C(DOCNAME)
-	var userCheck Users
-	findQuery := collection.Find(nil).Select(bson.M{"userid": 1, "role": 1}).All(&userCheck)
+	defer session.CloseSession()
+	var userList Users
+	findQuery := session.GetUsers(DOCNAME, &userList)
 	if findQuery != nil {
 		if findQuery.Error() == "not found" {
 			returnMessage := Message{
@@ -233,11 +191,11 @@ func (r Repository) GetUsers() Message {
 		}
 		return returnMessage
 	}
-	if len(userCheck) >= 0 {
+	if len(userList) >= 0 {
 		returnMessage := Message{
 			Status:  200,
 			Message: "User List",
-			Users:   &userCheck,
+			Users:   &userList,
 		}
 		return returnMessage
 	}
@@ -250,13 +208,12 @@ func (r Repository) GetUsers() Message {
 
 // DeleteUser deletes an User (not used for now)
 func (r Repository) DeleteUser(userID string) Message {
-	session, dbMessage := GetMongoSession()
+	session, dbMessage := NewMongoSession(address, DBNAME)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
-	defer session.Close()
-	collection := session.DB(DBNAME).C(DOCNAME)
-	if err := collection.Remove(bson.M{"userid": userID}); err != nil {
+	defer session.CloseSession()
+	if err := session.DeleteUser(DOCNAME, userID); err != nil {
 		if err.Error() == "not found" {
 			returnMessage := Message{
 				Status:  404,
@@ -281,16 +238,13 @@ func (r Repository) DeleteUser(userID string) Message {
 
 //IsAdmin checks if user is admin or not
 func (r Repository) IsAdmin(userID string) Message {
-	session, dbMessage := GetMongoSession()
+	session, dbMessage := NewMongoSession(address, DBNAME)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
-	defer session.Close()
-	collection := session.DB(DBNAME).C(DOCNAME)
-	var result struct {
-		Role string `bson:"role"`
-	}
-	if err := collection.Find(bson.M{"userid": userID}).Select(bson.M{"role": 1}).One(&result); err != nil {
+	defer session.CloseSession()
+	var result Result
+	if err := session.IsAdmin(DOCNAME, userID, &result); err != nil {
 		if err.Error() == "not found" {
 			returnMessage := Message{
 				Status:  401,
