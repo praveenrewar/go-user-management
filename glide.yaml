@@ -1,0 +1,29 @@
+package: .
+import:
+- package: github.com/dgrijalva/jwt-go
+  version: v3.2.0
+- package: github.com/gorilla/context
+  version: v1.1.1
+- package: github.com/gorilla/handlers
+  version: v1.4.0
+- package: github.com/gorilla/mux
+  version: v1.6.2
+- package: github.com/micro/go-config
+  version: v0.13.1
+  subpackages:
+  - source/file
+- package: github.com/mitchellh/mapstructure
+  version: v1.1.2
+- package: github.com/stretchr/testify
+  version: v1.2.2
+  subpackages:
+  - mock
+- package: github.com/thedevsaddam/govalidator
+  version: v1.9.4
+- package: golang.org/x/crypto
+  subpackages:
+  - bcrypt
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson
+# - package: home/praveen/RE_WAR/Go/golang-mvc-boilerplate/server/modules/users
