@@ -3,9 +3,9 @@ package users
 import (
 	"net/http"
 
-	"../../logger"
-	"../../middlewares/jwtAuthenticate"
-	"../../middlewares/usersMiddleware"
+	"golang-mvc-boilerplate/server/logger"
+	"golang-mvc-boilerplate/server/middlewares/jwtAuthenticate"
+	"golang-mvc-boilerplate/server/middlewares/usersMiddleware"
 	"github.com/gorilla/mux"
 )
 

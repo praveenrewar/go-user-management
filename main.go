@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"./server/modules/users"
-	"./server/sharedVariables"
+	"golang-mvc-boilerplate/server/modules/users"
+	"golang-mvc-boilerplate/server/sharedVariables"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 )

@@ -6,8 +6,8 @@ import (
 	"log"
 	"net/http"
 
-	"../../middlewares/jwtAuthenticate"
-	"../../middlewares/usersMiddleware"
+	"golang-mvc-boilerplate/server/middlewares/jwtAuthenticate"
+	"golang-mvc-boilerplate/server/middlewares/usersMiddleware"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
