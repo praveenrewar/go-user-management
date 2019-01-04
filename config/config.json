@@ -1,7 +1,7 @@
 {
   "dev": {
     "database": {
-      "address": "mongodb://localhost:27017",
+      "address": "mongo:27017",
       "db_name": "datax_dev"
     },
     "api": {
@@ -10,7 +10,7 @@
   },
   "test": {
     "database": {
-      "address": "mongodb://localhost:27017",
+      "address": "mongo:27017",
       "db_name": "datax_test"
     },
     "api": {
@@ -19,7 +19,7 @@
   },
   "prod": {
     "database": {
-      "address": "mongodb://localhost:27017",
+      "address": "mongo:27017",
       "db_name": "datax_prod"
     },
     "api": {
