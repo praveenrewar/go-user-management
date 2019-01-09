@@ -22,6 +22,7 @@ var dbName interface{}
 type User struct {
 	UserID   string
 	Password string
+	Role string
 }
 
 func TestMain(m *testing.M) {
@@ -54,7 +55,7 @@ func clearCollection() {
 	session.DB(dbName.(string)).C("users").RemoveAll(nil)
 }
 
-func addUser(userID string, password string) {
+func addUser(userID string, password string, role string) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		log.Println(err)
@@ -68,6 +69,7 @@ func addUser(userID string, password string) {
 	var user User
 	user.UserID = userID
 	user.Password = password
+	user.Role = role
 	session.DB(dbName.(string)).C("users").Insert(user)
 }
 
@@ -84,15 +86,15 @@ func getToken(userID string) string {
 
 func TestSignup(t *testing.T) {
 	clearCollection()
-	payload := []byte(`{"user_id":"test user","role":"admin","password":"password"}`)
+	payload := []byte(`{"user_id":"test_user","role":"admin","password":"password"}`)
 	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(payload))
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusCreated, response.Code)
 	var m map[string]interface{}
 	json.Unmarshal(response.Body.Bytes(), &m)
 
-	if m["user_id"] != "test user" {
-		t.Errorf("Expected user_id to be 'test user'. Got '%v'", m["name"])
+	if m["user_id"] != "test_user" {
+		t.Errorf("Expected user_id to be 'test_user'. Got '%v'", m["name"])
 	}
 	if m["message"] != "Signup successfull" {
 		t.Errorf("Expected message to be 'Signup successfull'. Got '%v'", m["message"])
@@ -101,7 +103,7 @@ func TestSignup(t *testing.T) {
 
 func TestSignupExistingUser(t *testing.T) {
 	clearCollection()
-	addUser("test_user", "password")
+	addUser("test_user", "password", "admin")
 	payload := []byte(`{"user_id":"test_user","role": "admin","password":"password"}`)
 	req, _ := http.NewRequest("POST", "/signup", bytes.NewBuffer(payload))
 	response := executeRequest(req)
@@ -115,7 +117,7 @@ func TestSignupExistingUser(t *testing.T) {
 }
 func TestLoginNonExistingUser(t *testing.T) {
 	clearCollection()
-	payload := []byte(`{"user_id":"test user","password":"password"}`)
+	payload := []byte(`{"user_id":"test_user","password":"password"}`)
 	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(payload))
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusNotFound, response.Code)
@@ -129,7 +131,7 @@ func TestLoginNonExistingUser(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	clearCollection()
-	addUser("test_user", "password")
+	addUser("test_user", "password", "admin")
 	payload := []byte(`{"user_id":"test_user","password":"password"}`)
 	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(payload))
 	response := executeRequest(req)
@@ -147,7 +149,7 @@ func TestLogin(t *testing.T) {
 
 func TestLoginWrongPassword(t *testing.T) {
 	clearCollection()
-	addUser("test_user", "password")
+	addUser("test_user", "password", "admin")
 	payload := []byte(`{"user_id":"test_user","password":"wrong_password"}`)
 	req, _ := http.NewRequest("POST", "/login", bytes.NewBuffer(payload))
 	response := executeRequest(req)
@@ -162,7 +164,7 @@ func TestLoginWrongPassword(t *testing.T) {
 
 func TestUpdatePassword(t *testing.T) {
 	clearCollection()
-	addUser("test_user", "password")
+	addUser("test_user", "password", "admin")
 	token := getToken("test_user")
 	payload := []byte(`{"old_password":"password","new_password":"password123"}`)
 	req, _ := http.NewRequest("POST", "/update_password", bytes.NewBuffer(payload))
