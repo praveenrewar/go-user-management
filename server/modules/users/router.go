@@ -4,8 +4,9 @@ import (
 	"net/http"
 
 	"golang-mvc-boilerplate/server/logger"
-	"golang-mvc-boilerplate/server/middlewares/jwtAuthenticate"
-	"golang-mvc-boilerplate/server/middlewares/usersMiddleware"
+	jwtauthenticate "golang-mvc-boilerplate/server/middlewares/jwtAuthenticate"
+	usersmiddleware "golang-mvc-boilerplate/server/middlewares/usersMiddleware"
+
 	"github.com/gorilla/mux"
 )
 
@@ -50,7 +51,7 @@ var routes = Routes{
 	Route{
 		Name:        "DeleteUser",
 		Method:      "DELETE",
-		Pattern:     "/deleteuser/{user_id}",
+		Pattern:     "/delete_user/{user_id}",
 		HandlerFunc: controller.DeleteUser,
 	}}
 

@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"golang-mvc-boilerplate/server/middlewares/jwtAuthenticate"
+	jwtauthenticate "golang-mvc-boilerplate/server/middlewares/jwtAuthenticate"
+
 	"github.com/gorilla/context"
 	"github.com/thedevsaddam/govalidator"
 )

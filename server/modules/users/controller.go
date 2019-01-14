@@ -3,12 +3,15 @@ package users
 import (
 	"encoding/json"
 	"fmt"
+	jwtauthenticate "golang-mvc-boilerplate/server/middlewares/jwtAuthenticate"
+	usersmiddleware "golang-mvc-boilerplate/server/middlewares/usersMiddleware"
+	shared "golang-mvc-boilerplate/server/sharedVariables"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
-	"golang-mvc-boilerplate/server/middlewares/jwtAuthenticate"
-	"golang-mvc-boilerplate/server/middlewares/usersMiddleware"
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
@@ -22,10 +25,10 @@ type Controller struct {
 // Signup POST /
 func (c *Controller) Signup(w http.ResponseWriter, r *http.Request) {
 
-	var user User
+	var user shared.User
 	data := context.Get(r, "user")
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	user = User(data.(usersmiddleware.UserFormData))
+	user = shared.User(data.(usersmiddleware.UserFormData))
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
 	if err != nil {
 		log.Println(err)
@@ -55,9 +58,9 @@ func (c *Controller) Signup(w http.ResponseWriter, r *http.Request) {
 func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	var user User
+	var user shared.User
 	data := context.Get(r, "user")
-	user = User(data.(usersmiddleware.UserFormData))
+	user = shared.User(data.(usersmiddleware.UserFormData))
 
 	result := c.Repository.Login(user)
 	if result.Status != 200 {
@@ -81,8 +84,12 @@ func (c *Controller) Login(w http.ResponseWriter, r *http.Request) {
 		w.Write(userJSON)
 		return
 	}
+	now := time.Now()
+	secs := now.Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"UserID": result.User.UserID,
+		"Role":   result.User.Role,
+		"IAT":    strconv.FormatInt(secs, 10),
 	})
 	tokenString, error := token.SignedString([]byte("secret"))
 	if error != nil {
@@ -107,7 +114,7 @@ func (c *Controller) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	data := context.Get(r, "user")
 	user = UpdateUser(data.(usersmiddleware.UpdateProfileFormData))
 
-	result := c.Repository.UpdateUser(user) // updates the user in the DB
+	result := c.Repository.UpdatePassword(user) // updates the user in the DB
 	w.WriteHeader(int(result.Status))
 	message := Message{
 		Status:  result.Status,

@@ -11,18 +11,10 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-//UserJWTData is used to get user_id from jwt
-type UserJWTData struct {
-	UserID string `json:"user_id"`
-}
-
 //Authenticate is used to verify jwt token
 func Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		type AuthenticationMessage struct {
-			Status  int32  `json:"status"`
-			Message string `json:"message"`
-		}
+
 		authorizationHeader := r.Header.Get("authorization")
 		if authorizationHeader != "" {
 			token := strings.Fields(authorizationHeader)
@@ -38,9 +30,34 @@ func Authenticate(next http.Handler) http.Handler {
 					}
 					return []byte("secret"), nil
 				})
-				if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+				defer func() {
+					if r := recover(); r != nil {
+						w.Header().Set("Content-type", "application/json")
+						w.WriteHeader(401)
+						message := AuthenticationMessage{
+							Status:  401,
+							Message: "Invalid authorization token"}
+						userJSON, _ := json.Marshal(message)
+						w.Write(userJSON)
+						return
+					}
+				}()
+				claims, ok := token.Claims.(jwt.MapClaims)
+				if ok && token.Valid {
 					var user UserJWTData
 					mapstructure.Decode(claims, &user)
+					var message AuthenticationMessage
+					message = ValidateUser(user)
+					if message.Status != 200 {
+						w.Header().Set("Content-type", "application/json")
+						w.WriteHeader(401)
+						message := AuthenticationMessage{
+							Status:  401,
+							Message: "Invalid authorization token"}
+						userJSON, _ := json.Marshal(message)
+						w.Write(userJSON)
+						return
+					}
 					context.Set(r, "user_jwt", user)
 					next.ServeHTTP(w, r)
 				} else {

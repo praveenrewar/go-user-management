@@ -3,7 +3,8 @@ package users
 import (
 	"log"
 
-	"golang-mvc-boilerplate/server/sharedVariables"
+	shared "golang-mvc-boilerplate/server/sharedVariables"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -19,8 +20,8 @@ var DBNAME = shared.DbName.(string)
 const DOCNAME = "users"
 
 // Login returns the list of Users
-func (r Repository) Login(user User) Message {
-	var userCheck User
+func (r Repository) Login(user shared.User) Message {
+	var userCheck shared.User
 	session, dbMessage := NewMongoSession(address, DBNAME)
 	if dbMessage.Status != 200 {
 		return dbMessage
@@ -29,24 +30,12 @@ func (r Repository) Login(user User) Message {
 	findErr := session.FindUser(DOCNAME, user.UserID, &userCheck)
 	if findErr != nil {
 		if findErr.Error() == "not found" {
-			returnMessage := Message{
-				Status:  404,
-				Message: "No such user exists",
-			}
-			return returnMessage
+			return noSuchUserMessage()
 		}
-		returnMessage := Message{
-			Status:  500,
-			Message: "Internal Server Error",
-		}
-		return returnMessage
+		return internalServerErrorMessage()
 	} else {
-		if userCheck == (User{}) {
-			returnMessage := Message{
-				Status:  404,
-				Message: "No such user exists",
-			}
-			return returnMessage
+		if userCheck == (shared.User{}) {
+			return noSuchUserMessage()
 		}
 		returnMessage := Message{
 			Status:  200,
@@ -58,24 +47,20 @@ func (r Repository) Login(user User) Message {
 }
 
 // Signup inserts a user in the DB
-func (r Repository) Signup(user User) Message {
+func (r Repository) Signup(user shared.User) Message {
 	session, dbMessage := NewMongoSession(address, DBNAME)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
 	defer session.CloseSession()
-	var userCheck User
+	var userCheck shared.User
 	findQuery := session.FindUser(DOCNAME, user.UserID, &userCheck)
 	if findQuery != nil {
 		if findQuery.Error() == "not found" {
 			err := session.InsertUser(DOCNAME, user)
 			if err != nil {
 				log.Fatal(err)
-				returnMessage := Message{
-					Status:  500,
-					Message: "Internal Server Error",
-				}
-				return returnMessage
+				return internalServerErrorMessage()
 			}
 			returnMessage := Message{
 				Status:  201,
@@ -84,52 +69,36 @@ func (r Repository) Signup(user User) Message {
 			}
 			return returnMessage
 		}
-		returnMessage := Message{
-			Status:  500,
-			Message: "Internal Server Error",
-		}
-		return returnMessage
+		return internalServerErrorMessage()
 	}
-	if userCheck != (User{}) {
+	if userCheck != (shared.User{}) {
 		returnMessage := Message{
 			Status:  409,
 			Message: "UserID already exists",
 		}
 		return returnMessage
 	}
-	returnMessage := Message{
-		Status:  500,
-		Message: "Internal Server Error",
-	}
-	return returnMessage
+	return internalServerErrorMessage()
 
 }
 
-// UpdateUser updates an User in the DB
-func (r Repository) UpdateUser(user UpdateUser) Message {
+// UpdatePassword updates an User in the DB
+func (r Repository) UpdatePassword(user UpdateUser) Message {
 	session, dbMessage := NewMongoSession(address, DBNAME)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
 	defer session.CloseSession()
-	var userCheck User
-	var updatedUser User
+	var userCheck shared.User
+	var updatedUser shared.User
 	findQuery := session.FindUser(DOCNAME, user.UserID, &userCheck)
 	if findQuery != nil {
 		if findQuery.Error() == "not found" {
-			returnMessage := Message{
-				Status:  404,
-				Message: "No such user exists",
-			}
-			return returnMessage
+			return noSuchUserMessage()
 		}
-		returnMessage := Message{
-			Status:  500,
-			Message: "Internal Server Error",
-		}
-		return returnMessage
+		return internalServerErrorMessage()
 	}
-	if userCheck != (User{}) {
+	if userCheck != (shared.User{}) {
 		plainPassword := []byte(user.OldPassword)
 		hashPassword := []byte(userCheck.Password)
 		comparePassword := bcrypt.CompareHashAndPassword(hashPassword, plainPassword)
@@ -149,11 +118,7 @@ func (r Repository) UpdateUser(user UpdateUser) Message {
 		updatedUser.Password = user.Password
 		updateError := session.UpdateUser(DOCNAME, user.UserID, updatedUser)
 		if updateError != nil {
-			returnMessage := Message{
-				Status:  500,
-				Message: "Some error while changing password\n" + string(updateError.Error()),
-			}
-			return returnMessage
+			return internalServerErrorMessage()
 		}
 		returnMessage := Message{
 			Status:  200,
@@ -161,11 +126,7 @@ func (r Repository) UpdateUser(user UpdateUser) Message {
 		}
 		return returnMessage
 	}
-	returnMessage := Message{
-		Status:  500,
-		Message: "Internal Server Error",
-	}
-	return returnMessage
+	return internalServerErrorMessage()
 }
 
 //GetUsers is used to get all the users from the db
@@ -175,7 +136,7 @@ func (r Repository) GetUsers() Message {
 		return dbMessage
 	}
 	defer session.CloseSession()
-	var userList Users
+	var userList shared.Users
 	findQuery := session.GetUsers(DOCNAME, &userList)
 	if findQuery != nil {
 		if findQuery.Error() == "not found" {
@@ -185,11 +146,7 @@ func (r Repository) GetUsers() Message {
 			}
 			return returnMessage
 		}
-		returnMessage := Message{
-			Status:  500,
-			Message: "Internal Server Error",
-		}
-		return returnMessage
+		return internalServerErrorMessage()
 	}
 	if len(userList) >= 0 {
 		returnMessage := Message{
@@ -199,11 +156,7 @@ func (r Repository) GetUsers() Message {
 		}
 		return returnMessage
 	}
-	returnMessage := Message{
-		Status:  500,
-		Message: "Internal Server Error",
-	}
-	return returnMessage
+	return internalServerErrorMessage()
 }
 
 // DeleteUser deletes an User (not used for now)
@@ -215,17 +168,9 @@ func (r Repository) DeleteUser(userID string) Message {
 	defer session.CloseSession()
 	if err := session.DeleteUser(DOCNAME, userID); err != nil {
 		if err.Error() == "not found" {
-			returnMessage := Message{
-				Status:  404,
-				Message: "No such user exists",
-			}
-			return returnMessage
+			return noSuchUserMessage()
 		}
-		returnMessage := Message{
-			Status:  500,
-			Message: "Internal Server Error",
-		}
-		return returnMessage
+		return internalServerErrorMessage()
 	}
 
 	returnMessage := Message{
@@ -245,18 +190,7 @@ func (r Repository) IsAdmin(userID string) Message {
 	defer session.CloseSession()
 	var result Result
 	if err := session.IsAdmin(DOCNAME, userID, &result); err != nil {
-		if err.Error() == "not found" {
-			returnMessage := Message{
-				Status:  401,
-				Message: "Invalid JWT credentials",
-			}
-			return returnMessage
-		}
-		returnMessage := Message{
-			Status:  500,
-			Message: "Internal Server Error",
-		}
-		return returnMessage
+		return internalServerErrorMessage()
 	}
 	if result.Role == "admin" {
 		returnMessage := Message{
@@ -272,5 +206,20 @@ func (r Repository) IsAdmin(userID string) Message {
 		Message: "User is not an admin",
 	}
 	return returnMessage
+}
 
+func noSuchUserMessage() Message {
+	returnMessage := Message{
+		Status:  404,
+		Message: "No such user exists",
+	}
+	return returnMessage
+}
+
+func internalServerErrorMessage() Message {
+	returnMessage := Message{
+		Status:  500,
+		Message: "Internal Server Error",
+	}
+	return returnMessage
 }
