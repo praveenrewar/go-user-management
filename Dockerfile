@@ -10,4 +10,4 @@ RUN apk update && apk upgrade && \
 RUN go test -c -coverpkg ./...
 RUN go build .
 
-CMD echo "Running Unit Tests" && WorkEnv=test "./go-user-management.test" && WorkEnv=dev "./go-user-management"
+CMD echo "Running Unit Tests" && WorkEnv=docker_test "./go-user-management.test" && WorkEnv=docker_dev "./go-user-management"

@@ -35,6 +35,30 @@
       "api": {
         "port": 9002
       }
+    },
+    {
+      "env": "docker_test",
+      "database": {
+        "address": "mongo:27017",
+        "db_name": "datax_dev",
+        "username": "",
+        "password": ""
+      },
+      "api": {
+        "port": 9002
+      }
+    },
+    {
+      "env": "docker_dev",
+      "database": {
+        "address": "mongo:27017",
+        "db_name": "datax_dev",
+        "username": "",
+        "password": ""
+      },
+      "api": {
+        "port": 9002
+      }
     }
   ]
 }
