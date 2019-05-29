@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"golang-mvc-boilerplate/server/modules/users"
-	shared "golang-mvc-boilerplate/server/sharedVariables"
+	"go-user-management/server/modules/users"
+	shared "go-user-management/server/sharedVariables"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"

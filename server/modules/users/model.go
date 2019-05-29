@@ -1,7 +1,7 @@
 package users
 
 import (
-	shared "golang-mvc-boilerplate/server/sharedVariables"
+	shared "go-user-management/server/sharedVariables"
 	"log"
 	"time"
 

@@ -1,4 +1,4 @@
-module golang-mvc-boilerplate
+module go-user-management
 
 require (
 	github.com/BurntSushi/toml v0.3.1 // indirect

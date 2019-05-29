@@ -10,7 +10,7 @@ import (
 	"os"
 	"testing"
 
-	_ "golang-mvc-boilerplate/server/modules/users"
+	_ "go-user-management/server/modules/users"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
@@ -188,7 +188,7 @@ func TestUpdatePassword(t *testing.T) {
 	addUser("test_user", "password", "admin")
 	token := getToken("test_user")
 	payload := []byte(`{"old_password":"password","new_password":"password123"}`)
-	req, _ := http.NewRequest("POST", "/update_password", bytes.NewBuffer(payload))
+	req, _ := http.NewRequest("POST", "/update-password", bytes.NewBuffer(payload))
 	req.Header.Set("Authorization", "Bearer "+token)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
@@ -204,7 +204,7 @@ func TestUpdatePasswordBadRequest(t *testing.T) {
 	addUser("test_user", "password", "admin")
 	token := getToken("test_user")
 	payload := []byte(`{"old_password":"password"}`)
-	req, _ := http.NewRequest("POST", "/update_password", bytes.NewBuffer(payload))
+	req, _ := http.NewRequest("POST", "/update-password", bytes.NewBuffer(payload))
 	req.Header.Set("Authorization", "Bearer "+token)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
@@ -215,7 +215,7 @@ func TestUpdatePasswordSamePassword(t *testing.T) {
 	addUser("test_user", "password", "admin")
 	token := getToken("test_user")
 	payload := []byte(`{"old_password":"password","new_password":"password"}`)
-	req, _ := http.NewRequest("POST", "/update_password", bytes.NewBuffer(payload))
+	req, _ := http.NewRequest("POST", "/update-password", bytes.NewBuffer(payload))
 	req.Header.Set("Authorization", "Bearer "+token)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
@@ -231,7 +231,7 @@ func TestUpdatePasswordInvalidToken(t *testing.T) {
 	addUser("test_user", "password", "admin")
 	// tokreturn nil, fmt.Errorf("There was an error")en := "token"
 	payload := []byte(`{"old_password":"password","new_password":"password123"}`)
-	req, _ := http.NewRequest("POST", "/update_password", bytes.NewBuffer(payload))
+	req, _ := http.NewRequest("POST", "/update-password", bytes.NewBuffer(payload))
 	req.Header.Set("Authorization", "Bearer "+"token")
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
@@ -247,7 +247,7 @@ func TestUpdatePasswordInvalidOldPassword(t *testing.T) {
 	addUser("test_user", "password", "admin")
 	token := getToken("test_user")
 	payload := []byte(`{"old_password":"invalid_password","new_password":"password123"}`)
-	req, _ := http.NewRequest("POST", "/update_password", bytes.NewBuffer(payload))
+	req, _ := http.NewRequest("POST", "/update-password", bytes.NewBuffer(payload))
 	req.Header.Set("Authorization", "Bearer "+token)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
@@ -262,7 +262,7 @@ func TestGetUsers(t *testing.T) {
 	clearCollection()
 	addUser("test_user", "password", "admin")
 	token := getToken("test_user")
-	req, _ := http.NewRequest("GET", "/get_users", nil)
+	req, _ := http.NewRequest("GET", "/get-users", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
@@ -277,7 +277,7 @@ func TestGetUsersInvalidToken(t *testing.T) {
 	clearCollection()
 	addUser("test_user", "password", "admin")
 	token := getToken("test_user")
-	req, _ := http.NewRequest("GET", "/get_users", nil)
+	req, _ := http.NewRequest("GET", "/get-users", nil)
 	req.Header.Set("Authorization", "Bearer "+token+"e")
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
@@ -293,7 +293,7 @@ func TestGetUsersInvalidTokenUserDeleted(t *testing.T) {
 	addUser("test_user", "password", "admin")
 	token := getToken("test_user")
 	clearCollection()
-	req, _ := http.NewRequest("GET", "/get_users", nil)
+	req, _ := http.NewRequest("GET", "/get-users", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)
@@ -307,7 +307,7 @@ func TestGetUsersInvalidTokenUserDeleted(t *testing.T) {
 func TestGetUsersInvalidTokenFormat(t *testing.T) {
 	clearCollection()
 	addUser("test_user", "password", "admin")
-	req, _ := http.NewRequest("GET", "/get_users", nil)
+	req, _ := http.NewRequest("GET", "/get-users", nil)
 	req.Header.Set("Authorization", "Bearer ")
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
@@ -321,7 +321,7 @@ func TestGetUsersInvalidTokenFormat(t *testing.T) {
 func TestGetUsersMissingAuthorizationHeader(t *testing.T) {
 	clearCollection()
 	addUser("test_user", "password", "admin")
-	req, _ := http.NewRequest("GET", "/get_users", nil)
+	req, _ := http.NewRequest("GET", "/get-users", nil)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusBadRequest, response.Code)
 	var m map[string]interface{}
@@ -336,7 +336,7 @@ func TestDeleteUser(t *testing.T) {
 	addUser("admin_user", "password", "admin")
 	addUser("test_user", "password", "datascientist")
 	token := getToken("admin_user")
-	req, _ := http.NewRequest("DELETE", "/delete_user/test_user", nil)
+	req, _ := http.NewRequest("DELETE", "/delete-user/test_user", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusOK, response.Code)
@@ -355,7 +355,7 @@ func TestDeleteUserNotAdmin(t *testing.T) {
 	addUser("admin_user", "password", "datascientist")
 	addUser("test_user", "password", "datascientist")
 	token := getToken("admin_user")
-	req, _ := http.NewRequest("DELETE", "/delete_user/test_user", nil)
+	req, _ := http.NewRequest("DELETE", "/delete-user/test_user", nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 	response := executeRequest(req)
 	checkResponseCode(t, http.StatusUnauthorized, response.Code)

@@ -3,7 +3,7 @@ package users
 import (
 	"log"
 
-	shared "golang-mvc-boilerplate/server/sharedVariables"
+	shared "go-user-management/server/sharedVariables"
 
 	"golang.org/x/crypto/bcrypt"
 )

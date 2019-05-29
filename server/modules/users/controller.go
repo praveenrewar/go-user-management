@@ -3,9 +3,9 @@ package users
 import (
 	"encoding/json"
 	"fmt"
-	jwtauthenticate "golang-mvc-boilerplate/server/middlewares/jwtAuthenticate"
-	usersmiddleware "golang-mvc-boilerplate/server/middlewares/usersMiddleware"
-	shared "golang-mvc-boilerplate/server/sharedVariables"
+	jwtauthenticate "go-user-management/server/middlewares/jwtAuthenticate"
+	usersmiddleware "go-user-management/server/middlewares/usersMiddleware"
+	shared "go-user-management/server/sharedVariables"
 	"log"
 	"net/http"
 	"strconv"

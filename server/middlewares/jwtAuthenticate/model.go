@@ -1,7 +1,7 @@
 package jwtauthenticate
 
 import (
-	shared "golang-mvc-boilerplate/server/sharedVariables"
+	shared "go-user-management/server/sharedVariables"
 	"log"
 
 	mgo "gopkg.in/mgo.v2"

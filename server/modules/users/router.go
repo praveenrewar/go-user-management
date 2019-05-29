@@ -3,9 +3,9 @@ package users
 import (
 	"net/http"
 
-	"golang-mvc-boilerplate/server/logger"
-	jwtauthenticate "golang-mvc-boilerplate/server/middlewares/jwtAuthenticate"
-	usersmiddleware "golang-mvc-boilerplate/server/middlewares/usersMiddleware"
+	"go-user-management/server/logger"
+	jwtauthenticate "go-user-management/server/middlewares/jwtAuthenticate"
+	usersmiddleware "go-user-management/server/middlewares/usersMiddleware"
 
 	"github.com/gorilla/mux"
 )
@@ -27,7 +27,7 @@ var routes = Routes{
 	Route{
 		Name:        "GetUsers",
 		Method:      "GET",
-		Pattern:     "/get_users",
+		Pattern:     "/get-users",
 		HandlerFunc: controller.GetUsers,
 	},
 	Route{
@@ -45,13 +45,13 @@ var routes = Routes{
 	Route{
 		Name:        "UpdatePassword",
 		Method:      "POST",
-		Pattern:     "/update_password",
+		Pattern:     "/update-password",
 		HandlerFunc: controller.UpdatePassword,
 	},
 	Route{
 		Name:        "DeleteUser",
 		Method:      "DELETE",
-		Pattern:     "/delete_user/{user_id}",
+		Pattern:     "/delete-user/{user_id}",
 		HandlerFunc: controller.DeleteUser,
 	}}
 
