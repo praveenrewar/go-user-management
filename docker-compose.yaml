@@ -9,10 +9,13 @@ services:
       - '9002:9002'
     volumes:
       - './:/go/src/app'
+    restart: 'always'
     depends_on:
       - 'mongo'
   mongo:
     image: 'mongo:latest'
     container_name: 'mongo'
+    volumes:
+      - './docker-mongo/:/data/db'
     ports:
       - '27100:27017'
