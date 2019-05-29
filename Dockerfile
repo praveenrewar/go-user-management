@@ -5,7 +5,7 @@ COPY . .
 
 RUN apk update && apk upgrade && \
   apk add --no-cache bash git openssh build-base && \
-  export GO111MODULE=on && go mod vendor
+  export GO111MODULE=on && go mod init && go mod vendor
 
 RUN go test -c -coverpkg ./...
 RUN go build .

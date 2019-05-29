@@ -1,3 +1,5 @@
-/vendor
-coverage.out
+/vendor/
+/coverage.out
 /.vscode
+/go.mod
+/go.sum
