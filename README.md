@@ -1,5 +1,5 @@
 # go-user-management
-This is a simple Web Application written in Go and uses MongoDB as database and can be used as a boilerplate. There are 5 APIs in the app `/get_users`, `/login`, `/signup`, `/update_password` and `/delete_user/{user_id}`.
+This is a simple Web Application written in Go and uses MongoDB as database and can be used as a boilerplate for writing other such applications. It also includes writing unit tests for the APIs built and dockerizing and running the whole app in docker containers. There are 5 APIs in the app `/get_users`, `/login`, `/signup`, `/update_password` and `/delete_user/{user_id}`.
 
 #### Directory structure
 ``` 
