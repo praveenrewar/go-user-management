@@ -1,9 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"golang-mvc-boilerplate/server/modules/users"
 	shared "golang-mvc-boilerplate/server/sharedVariables"
@@ -15,9 +15,9 @@ import (
 //App is used to start the app
 type App struct {
 	Router    *mux.Router
-	DBAddress interface{}
-	DBName    interface{}
-	Port      interface{}
+	DBAddress string
+	DBName    string
+	Port      int
 }
 
 func main() {
@@ -28,7 +28,8 @@ func main() {
 
 //Run is used to create routers
 func (a *App) Run() {
-	a.Router = users.NewRouter() // create routes
+	a.Router = mux.NewRouter()
+	a.Router = users.AddRouters(a.Router)
 	a.DBAddress = shared.Address
 	a.DBName = shared.DbName
 	a.Port = shared.Port
@@ -40,6 +41,8 @@ func (a *App) Serve() {
 	// these two lines are important in order to allow access from the front-end side to the methods
 	allowedOrigins := handlers.AllowedOrigins([]string{"*"})
 	allowedMethods := handlers.AllowedMethods([]string{"GET", "POST", "DELETE", "PUT"})
-	log.Fatal(http.ListenAndServe(":"+string(a.Port.(json.Number)),
-		handlers.CORS(allowedOrigins, allowedMethods)(a.Router)))
+	allowedHeader := handlers.AllowedHeaders([]string{"Accept", "Authorization", "X-CSRF-Token", "X-Requested-With", "Content-Type"})
+	log.Println("Serving application at PORT:" + strconv.Itoa(a.Port))
+	log.Fatal(http.ListenAndServe(":"+string(strconv.Itoa(a.Port)),
+		handlers.CORS(allowedOrigins, allowedMethods, allowedHeader)(a.Router)))
 }

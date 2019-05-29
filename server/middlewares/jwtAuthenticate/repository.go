@@ -4,13 +4,13 @@ import (
 	shared "golang-mvc-boilerplate/server/sharedVariables"
 )
 
-var address = shared.Address.(string)
+var address = shared.Address
 
 //Repository ...
 type Repository struct{}
 
 // DBNAME the name of the DB instance
-var DBNAME = shared.DbName.(string)
+var DBNAME = shared.DbName
 
 // DOCNAME the name of the document
 const DOCNAME = "users"

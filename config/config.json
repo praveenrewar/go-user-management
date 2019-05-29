@@ -1,29 +1,40 @@
 {
-  "dev": {
-    "database": {
-      "address": "localhost:27017",
-      "db_name": "datax_dev"
+  "environments": [
+    {
+      "env": "dev",
+      "database": {
+        "address": "localhost:27017",
+        "db_name": "datax_dev",
+        "username": "",
+        "password": ""
+      },
+      "api": {
+        "port": 9000
+      }
     },
-    "api": {
-      "port": 9000
-    }
-  },
-  "test": {
-    "database": {
-      "address": "localhost:27017",
-      "db_name": "datax_test"
+    {
+      "env": "test",
+      "database": {
+        "address": "localhost:27017",
+        "db_name": "datax_dev",
+        "username": "",
+        "password": ""
+      },
+      "api": {
+        "port": 9001
+      }
     },
-    "api": {
-      "port": 9001
+    {
+      "env": "prod",
+      "database": {
+        "address": "localhost:27017",
+        "db_name": "datax_dev",
+        "username": "",
+        "password": ""
+      },
+      "api": {
+        "port": 9002
+      }
     }
-  },
-  "prod": {
-    "database": {
-      "address": "mongo:27017",
-      "db_name": "datax_prod"
-    },
-    "api": {
-      "port": 9002
-    }
-  }
+  ]
 }

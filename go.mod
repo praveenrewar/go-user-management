@@ -11,11 +11,11 @@ require (
 	github.com/gorilla/mux v1.6.2
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/imdario/mergo v0.3.6 // indirect
-	github.com/micro/go-config v0.13.1
+	github.com/micro/go-config v0.13.1 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/objx v0.1.1 // indirect
-	github.com/stretchr/testify v1.2.2
+	github.com/stretchr/testify v1.2.2 // indirect
 	github.com/thedevsaddam/govalidator v1.9.4
 	golang.org/x/crypto v0.0.0-20190102171810-8d7daa0c54b3
 	golang.org/x/sys v0.0.0-20190102155601-82a175fd1598 // indirect

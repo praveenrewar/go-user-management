@@ -55,9 +55,9 @@ var routes = Routes{
 		HandlerFunc: controller.DeleteUser,
 	}}
 
-//NewRouter configures a new router to the API
-func NewRouter() *mux.Router {
-	router := mux.NewRouter().StrictSlash(true)
+//AddRouters configures a new router to the API
+func AddRouters(router *mux.Router) *mux.Router {
+	// router := mux.NewRouter().StrictSlash(true)
 
 	//signup
 	router.Methods()

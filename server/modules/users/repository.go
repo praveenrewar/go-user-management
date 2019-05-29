@@ -8,25 +8,31 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var address = shared.Address.(string)
+var address = shared.Address
 
 //Repository ...
 type Repository struct{}
 
 // DBNAME the name of the DB instance
-var DBNAME = shared.DbName.(string)
+var DBNAME = shared.DbName
+
+//DBUsername is the username for db
+var DBUsername = shared.DbUsername
+
+//DBPassword is the password for the db
+var DBPassword = shared.DbPassword
 
 // DOCNAME the name of the document
 const DOCNAME = "users"
 
 // Login returns the list of Users
 func (r Repository) Login(user shared.User) Message {
-	var userCheck shared.User
-	session, dbMessage := NewMongoSession(address, DBNAME)
+	session, dbMessage := NewMongoSession(address, DBNAME, DBUsername, DBPassword)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
 	defer session.CloseSession()
+	var userCheck shared.User
 	findErr := session.FindUser(DOCNAME, user.UserID, &userCheck)
 	if findErr != nil {
 		if findErr.Error() == "not found" {
@@ -48,7 +54,7 @@ func (r Repository) Login(user shared.User) Message {
 
 // Signup inserts a user in the DB
 func (r Repository) Signup(user shared.User) Message {
-	session, dbMessage := NewMongoSession(address, DBNAME)
+	session, dbMessage := NewMongoSession(address, DBNAME, DBUsername, DBPassword)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
@@ -84,7 +90,7 @@ func (r Repository) Signup(user shared.User) Message {
 
 // UpdatePassword updates an User in the DB
 func (r Repository) UpdatePassword(user UpdateUser) Message {
-	session, dbMessage := NewMongoSession(address, DBNAME)
+	session, dbMessage := NewMongoSession(address, DBNAME, DBUsername, DBPassword)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
@@ -131,7 +137,7 @@ func (r Repository) UpdatePassword(user UpdateUser) Message {
 
 //GetUsers is used to get all the users from the db
 func (r Repository) GetUsers() Message {
-	session, dbMessage := NewMongoSession(address, DBNAME)
+	session, dbMessage := NewMongoSession(address, DBNAME, DBUsername, DBPassword)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
@@ -161,7 +167,7 @@ func (r Repository) GetUsers() Message {
 
 // DeleteUser deletes an User (not used for now)
 func (r Repository) DeleteUser(userID string) Message {
-	session, dbMessage := NewMongoSession(address, DBNAME)
+	session, dbMessage := NewMongoSession(address, DBNAME, DBUsername, DBPassword)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}
@@ -183,7 +189,7 @@ func (r Repository) DeleteUser(userID string) Message {
 
 //IsAdmin checks if user is admin or not
 func (r Repository) IsAdmin(userID string) Message {
-	session, dbMessage := NewMongoSession(address, DBNAME)
+	session, dbMessage := NewMongoSession(address, DBNAME, DBUsername, DBPassword)
 	if dbMessage.Status != 200 {
 		return dbMessage
 	}

@@ -3,6 +3,7 @@ package users
 import (
 	shared "golang-mvc-boilerplate/server/sharedVariables"
 	"log"
+	"time"
 
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -51,10 +52,17 @@ type MongoSession struct {
 var mgoSession MongoSession
 
 //NewMongoSession is used to create or use previously created mongo sessions
-func NewMongoSession(dbURI string, dbName string) (DataAccessLayer, Message) {
+func NewMongoSession(dbURI string, dbName string, dbUsername string, dbPassword string) (DataAccessLayer, Message) {
+	mongoDBDialInfo := &mgo.DialInfo{
+		Addrs:    []string{dbURI},
+		Timeout:  60 * time.Second,
+		Database: dbName,
+		Username: dbUsername,
+		Password: dbPassword,
+	}
 	if mgoSession.session == nil {
 		var err error
-		mgoSession.session, err = mgo.Dial(dbURI)
+		mgoSession.session, err = mgo.DialWithInfo(mongoDBDialInfo)
 		if err != nil {
 			log.Fatal(err)
 			returnMessage := Message{
