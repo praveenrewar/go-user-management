@@ -20,6 +20,7 @@ type App struct {
 	Port      int
 }
 
+//Main function to run and serve the App
 func main() {
 	var a App
 	a.Run()
